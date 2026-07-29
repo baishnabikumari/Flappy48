@@ -86,6 +86,7 @@ function update(){
 
     if(bird.y - bird.radius < 0 || bird.y + bird.radius > canvas.height){
         bird.y = Math.max(bird.radius, Math.min(canvas.height - bird.radius, bird.y));
+        running = false;
     }
 }
 
@@ -106,7 +107,7 @@ function drawGates(){
     ctx.fillStyle = '#8f7a66';
     for(const gate of gates){
         ctx.fillRect(gate.x, 0, GATE_WIDTH, gate.gapY);
-        ctx.fillRect(gate.x, gate.gapY + GATE_GAP, GATE_WIDTH, canvas.height - gates.gapY - GATE_GAP);
+        ctx.fillRect(gate.x, gate.gapY + GATE_GAP, GATE_WIDTH, canvas.height - gate.gapY - GATE_GAP);
     }
 }
 
