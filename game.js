@@ -9,6 +9,10 @@ const GATE_GAP = 170;
 const GATE_SPACING = 200;
 const TILE_RADIUS = 16;
 const TRAIL_SPACING = 40;
+const PARTICLE_COUNT = 90;
+const PARTICLE_FIELD_RADIUS = 90;
+const LED_COUNT = 60;
+const LED_SIZE = 5;
 const bird = {
     x: 120,
     y: canvas.height / 2,
@@ -22,6 +26,71 @@ let running = true;
 let gates = [];
 let score = 0;
 let trail = [];
+let particles = [];
+let hueOffset = 0;
+let flashTimer = 0;
+let flashColor = '255,255,255';
+let wasRunning = true;
+
+function ledPosition(t){
+    const w = canvas.width;
+    const h = canvas.height;
+    const perimeter = 2 * (w + h);
+    let d = t * perimeter;
+
+    if (d < w) return { x: d, y: 0 };
+    d -= w;
+    if (d < h) return { x: w, y: d };
+    d -= h;
+    if (d < w) return { x: w - d, y: h};
+    d -= w;
+    return { x: 0, y: h - d };
+}
+
+function triggerFlash(color){
+    flashTimer = 1;
+    flashColor = color;
+}
+
+function updateEffects(){
+    hueOffset = (hueOffset + 0.6 + scrollSpeed * 0.3) % 360;
+    if (flashTimer > 0) flashTimer = Math.max(0, flashTimer - 0.04);
+}
+
+function initParticles(){
+    particles = [];
+    for(let i = 0; i < PARTICLE_COUNT; i++){
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: (Math.random() - 0.5) * 0.3,
+            size: 1 + Math.random() * 2,
+            drift: Math.random() * Math.PI * 2
+        });
+    }
+}
+
+function updateParticles(){
+    for ( const p of particles){
+        p.drift += 0.01;
+        p.x += p.vy + Math.sin(p.drift) * 0.15;
+        p.y += p.vy + Math.cos(p.drift) * 0.15;
+
+        const dx = bird.x - p.x;
+        const dy = bird.y - p.y;
+        const dist = Math.sqrt(dx * dx * dy * dy);
+        if(dist < PARTICLE_FIELD_RADIUS && dist > 0.01){
+            const pull = (PARTICLE_FIELD_RADIUS - dist) / PARTICLE_FIELD_RADIUS;
+            p.x += (dx / dist) * pull * 1.2;
+            p.y += (dy / dist) * pull * 1.2;
+        }
+        if(p.x < 0) p.x = canvas.width;
+        if(p.x > canvas.width) p.x = 0;
+        if(p.y < 0) p.y = canvas.height;
+        if(p.y > canvas.height) p.y = 0;
+    }
+}
 
 function flap() {
     if (!running) {
@@ -39,6 +108,8 @@ function resetGame() {
     score = 0;
     trail = [];
     running = true;
+    flashTimer = 0;
+    scrollSpeed = BASE_SCROLL_SPEED;
 }
 
 window.addEventListener('keydown', (e) => {
@@ -100,6 +171,7 @@ function collectTile(tile) {
     if (tile.value === bird.value) {
         bird.value *= 2;
         score += bird.value;
+        triggerFlash('255,214,120');
     } else {
         trail.push({ value: tile.value, x: bird.x, y: bird.y });
     }
@@ -117,6 +189,8 @@ function updateTrail() {
 }
 
 function update() {
+    updateParticles();
+    updateEffects();
     if (!running) return;
 
     bird.vy += GRAVITY;
@@ -150,18 +224,30 @@ function update() {
         bird.y = Math.max(bird.radius, Math.min(canvas.height - bird.radius, bird.y));
         running = false;
     }
+    if(wasRunning && !running){
+        triggerFlash('255,70,70');
+    }
+    wasRunning = running;
 }
 
 function drawBackground() {
-    ctx.fillStyle = '#cdc1b4';
+    ctx.fillStyle = 'rgba(18, 20, 16 0.35)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = 'rgba(238, 228, 218, 0.4)';
+
+    ctx.strokeStyle = 'rgba(120, 140, 100, 0.08)';
     ctx.lineWidth = 1;
     for (let x = -bgOffset; x < canvas.width; x += 40) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, canvas.height);
         ctx.stroke();
+    }
+
+    for (const p of particles){
+        ctx.fillStyle = p.size > 2 ? 'rgba(196, 164, 86, 0.55)' : 'rgba(94, 138, 102, 0.45)';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
     }
 }
 
@@ -242,6 +328,26 @@ function drawGameOver() {
     ctx.fillText('crashed - click to reply', canvas.width / 2, canvas.height / 2);
 }
 
+function drawLEDStrip(){
+    for(let i = 0; i < LED_COUNT; i++){
+        const t = i / LED_COUNT;
+        const pos = ledPosition(t);
+        const hue = (hueOffset + t * 360) % 360;
+
+        ctx.fillStyle = `hsl(${hue}, 70%, 55%)`;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, LED_SIZE, 0, Math.PI * 2);
+        ctx.fill();
+
+        if(flashTimer > 0){
+            ctx.fillStyle = `rgba(${flashColor}, ${flashTimer})`;
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, LED_SIZE, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+}
+
 function draw() {
     drawBackground();
     drawGates();
@@ -250,6 +356,7 @@ function draw() {
     drawBird();
     drawScore();
     if (!running) drawGameOver();
+    drawLEDStrip();
 }
 
 function loop() {
@@ -258,4 +365,5 @@ function loop() {
     requestAnimationFrame(loop)
 }
 
+initParticles();
 loop();
