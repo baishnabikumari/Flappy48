@@ -3,10 +3,15 @@ const ctx = canvas.getContext('2d');
 
 const GRAVITY = 0.45;
 const FLAP_POWER = -8;
-const SCROLL_SPEED = 3;
+
+const BASE_SCROLL_SPEED = 3;
+const MAX_SCROLL_SPEED = 6;
 const GATE_WIDTH = 70;
-const GATE_GAP = 170;
+const BASE_GATE_GAP = 170;
+const MIN_GATE_GAP = 115;
 const GATE_SPACING = 200;
+const DIFFICULTY_RAMP_SCORE = 40;
+
 const TILE_RADIUS = 16;
 const TRAIL_SPACING = 40;
 const PARTICLE_COUNT = 90;
@@ -26,11 +31,21 @@ let running = true;
 let gates = [];
 let score = 0;
 let trail = [];
+
+let scrollSpeed = BASE_SCROLL_SPEED;
+let gateGap = BASE_GATE_GAP;
+
 let particles = [];
 let hueOffset = 0;
 let flashTimer = 0;
 let flashColor = '255,255,255';
 let wasRunning = true;
+
+function updateDifficulty(){
+    const t = Math.min(score / DIFFICULTY_RAMP_SCORE, 1);
+    scrollSpeed = BASE_SCROLL_SPEED + (MAX_SCROLL_SPEED - BASE_SCROLL_SPEED) * t;
+    gateGap = BASE_GATE_GAP - (BASE_GATE_GAP - MIN_GATE_GAP) * t;
+}
 
 function ledPosition(t){
     const w = canvas.width;
@@ -74,12 +89,12 @@ function initParticles(){
 function updateParticles(){
     for ( const p of particles){
         p.drift += 0.01;
-        p.x += p.vy + Math.sin(p.drift) * 0.15;
+        p.x += p.vx + Math.sin(p.drift) * 0.15;
         p.y += p.vy + Math.cos(p.drift) * 0.15;
 
         const dx = bird.x - p.x;
         const dy = bird.y - p.y;
-        const dist = Math.sqrt(dx * dx * dy * dy);
+        const dist = Math.sqrt(dx * dx + dy * dy);
         if(dist < PARTICLE_FIELD_RADIUS && dist > 0.01){
             const pull = (PARTICLE_FIELD_RADIUS - dist) / PARTICLE_FIELD_RADIUS;
             p.x += (dx / dist) * pull * 1.2;
@@ -110,6 +125,7 @@ function resetGame() {
     running = true;
     flashTimer = 0;
     scrollSpeed = BASE_SCROLL_SPEED;
+    gateGap = BASE_GATE_GAP;
 }
 
 window.addEventListener('keydown', (e) => {
@@ -142,11 +158,13 @@ function randomTileValue() {
 
 function spawnGate() {
     const margin = 60;
-    const gapY = margin + Math.random() * (canvas.height - margin * 2 - GATE_GAP);
-    const tileY = gapY + GATE_GAP / 2 + (Math.random() - 0.5) * (GATE_GAP - 60);
+    const gap = gateGap;
+    const gapY = margin + Math.random() * (canvas.height - margin * 2 - gap);
+    const tileY = gapY + gap / 2 + (Math.random() - 0.5) * (gap - 60);
     gates.push({
         x: canvas.width + GATE_WIDTH,
         gapY,
+        gap,
         passed: false,
         tile: { value: randomTileValue(), y: tileY, collected: false }
     });
@@ -155,7 +173,7 @@ function spawnGate() {
 function hitsGate(gate) {
     const withinX = bird.x + bird.radius > gate.x && bird.x - bird.radius < gate.x + GATE_WIDTH;
     if (!withinX) return false;
-    const withinGap = bird.y - bird.radius > gate.gapY && bird.y + bird.radius < gate.gapY + GATE_GAP;
+    const withinGap = bird.y - bird.radius > gate.gapY && bird.y + bird.radius < gate.gapY + gate.gap;
     return !withinGap;
 }
 
@@ -189,6 +207,7 @@ function updateTrail() {
 }
 
 function update() {
+    updateDifficulty();
     updateParticles();
     updateEffects();
     if (!running) return;
@@ -196,14 +215,14 @@ function update() {
     bird.vy += GRAVITY;
     bird.y += bird.vy;
 
-    bgOffset = (bgOffset + SCROLL_SPEED) % 40;
+    bgOffset = (bgOffset + scrollSpeed) % 40;
 
     if (gates.length === 0 || gates[gates.length - 1].x < canvas.width - GATE_SPACING) {
         spawnGate();
     }
 
     for (const gate of gates) {
-        gate.x -= SCROLL_SPEED;
+        gate.x -= scrollSpeed;
 
         if (!gate.passed && gate.x + GATE_WIDTH < bird.x) {
             gate.passed = true;
@@ -231,7 +250,7 @@ function update() {
 }
 
 function drawBackground() {
-    ctx.fillStyle = 'rgba(18, 20, 16 0.35)';
+    ctx.fillStyle = 'rgba(18, 20, 16, 0.35)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.strokeStyle = 'rgba(120, 140, 100, 0.08)';
@@ -255,7 +274,7 @@ function drawGates() {
     ctx.fillStyle = '#8f7a66';
     for (const gate of gates) {
         ctx.fillRect(gate.x, 0, GATE_WIDTH, gate.gapY);
-        ctx.fillRect(gate.x, gate.gapY + GATE_GAP, GATE_WIDTH, canvas.height - gate.gapY - GATE_GAP);
+        ctx.fillRect(gate.x, gate.gapY + gate.gap, GATE_WIDTH, canvas.height - gate.gapY - gate.gap);
     }
 }
 
