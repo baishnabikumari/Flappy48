@@ -40,6 +40,7 @@ let hueOffset = 0;
 let flashTimer = 0;
 let flashColor = '255,255,255';
 let wasRunning = true;
+let audioCtx = null;
 
 function updateDifficulty(){
     const t = Math.min(score / DIFFICULTY_RAMP_SCORE, 1);
@@ -107,12 +108,32 @@ function updateParticles(){
     }
 }
 
+function playTone(freq, duration, type, volume){
+    try{
+        if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.value = volume;
+
+        osc.connect(gain);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.stop(audioCtx.currentTime + duration);
+    } catch (err){
+        
+    }
+}
+
 function flap() {
     if (!running) {
         resetGame();
         return;
     }
     bird.vy = FLAP_POWER;
+    playTone(300, 0.05, 'square', 0.05);
 }
 
 function resetGame() {
@@ -135,7 +156,7 @@ canvas.addEventListener('mousedown', flap);
 canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
     flap()
-});
+}, { passive: false });
 
 const TILE_COLORS = {
     2: '#eee4da',
@@ -198,6 +219,7 @@ function collectTile(tile) {
         bird.value *= 2;
         score += bird.value;
         triggerFlash('255,214,120');
+        playTone(220 + Math.log2(bird.value) * 40, 0.15, 'sine', 0.12);
     } else {
         trail.push({ value: tile.value, x: bird.x, y: bird.y });
     }
@@ -258,6 +280,7 @@ function update() {
     }
     if(wasRunning && !running){
         triggerFlash('255,70,70');
+        playTone(140, 0.3, 'sawtooth', 0.15);
     }
     wasRunning = running;
 }
