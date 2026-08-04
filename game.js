@@ -152,7 +152,8 @@ function tileColor(value) {
 
 function randomTileValue() {
     if (Math.random() < 0.4) return bird.value;
-    const options = [2, 4, 8];
+    const low = Math.max(2, bird.value / 2);
+    const options = [low, bird.value, bird.value * 2];
     return options[Math.floor(Math.random() * options.length)];
 }
 
@@ -174,6 +175,13 @@ function hitsGate(gate) {
     const withinX = bird.x + bird.radius > gate.x && bird.x - bird.radius < gate.x + GATE_WIDTH;
     if (!withinX) return false;
     const withinGap = bird.y - bird.radius > gate.gapY && bird.y + bird.radius < gate.gapY + gate.gap;
+    return !withinGap;
+}
+
+function pointHitsGate(gate, x, y){
+    const withinX = x + TILE_RADIUS > gate.x && x - TILE_RADIUS < gate.x + GATE_WIDTH;
+    if(!withinX) return false;
+    const withinGap = y - TILE_RADIUS > gate.gapY && y + TILE_RADIUS < gate.gapY + gate.gap;
     return !withinGap;
 }
 
@@ -234,6 +242,11 @@ function update() {
         if (!gate.tile.collected && hitsTile(gate)) {
             gate.tile.collected = true;
             collectTile(gate.tile);
+        }
+        for (const t of trail){
+            if(pointHitsGate(gate, t.x, t.y)){
+                running = false;
+            }
         }
     }
     gates = gates.filter(g => g.x + GATE_WIDTH > 0);
