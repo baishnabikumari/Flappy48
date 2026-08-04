@@ -266,14 +266,14 @@ function drawBackground() {
     ctx.fillStyle = 'rgba(18, 20, 16, 0.35)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.strokeStyle = 'rgba(120, 140, 100, 0.08)';
-    ctx.lineWidth = 1;
-    for (let x = -bgOffset; x < canvas.width; x += 40) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-    }
+    // ctx.strokeStyle = 'rgba(120, 140, 100, 0.08)';
+    // ctx.lineWidth = 1;
+    // for (let x = -bgOffset; x < canvas.width; x += 40) {
+    //     ctx.beginPath();
+    //     ctx.moveTo(x, 0);
+    //     ctx.lineTo(x, canvas.height);
+    //     ctx.stroke();
+    // }
 
     for (const p of particles){
         ctx.fillStyle = p.size > 2 ? 'rgba(196, 164, 86, 0.55)' : 'rgba(94, 138, 102, 0.45)';
