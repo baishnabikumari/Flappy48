@@ -1,5 +1,5 @@
 # Flappy48
-A flappy-bird style game crossed with the one and only 2048's merge mechanic, wrapped into a reactive art shell(particle field + chasing LED border) for the theme **ELECTROART**.
+A flappy-bird style game crossed with the one and only 2048's merge mechanic, wrapped into a reactive art shell(particle field + chasing LED border) its like an **ELECTROART**.
 
 U fly a numbered tile through gates collect theme and grows you into a flying bird(if you got the same value you level up then), No end screen, no levels - its endless, and gets harfer the longer u survive.
 
