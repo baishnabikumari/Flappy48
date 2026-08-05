@@ -15,6 +15,8 @@ The LED border and particle field aren't just pretty bits, they're dynamically g
 
 https://github.com/user-attachments/assets/bdd90aa7-1ba1-4a09-ab63-8c29859c61d7
 
+**Note(Ai declaration)** - i haven’t used AI in the project.
+
 ## Controls
 - **Space**, **click**, or **tap** - flap
 
