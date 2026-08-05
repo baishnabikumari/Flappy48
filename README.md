@@ -3,6 +3,8 @@ A flappy-bird style game crossed with the one and only 2048's merge mechanic, wr
 
 U fly a numbered tile through gates collect theme and grows you into a flying bird(if you got the same value you level up then), No end screen, no levels - its endless, and gets harfer the longer u survive.
 
+The LED border and particle field aren't just pretty bits, they're dynamically generated from your game, your score controls the chase speed, your score + a trigger = gold flash, crash = red flash.
+
 ## screenshos and demo
 
 <img width="1440" height="710" alt="Screenshot 2026-08-05 at 7 35 02 AM" src="https://github.com/user-attachments/assets/a73b5e9b-549a-4ffe-9a85-2801fa9a893d" />
