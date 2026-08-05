@@ -5,7 +5,13 @@ U fly a numbered tile through gates collect theme and grows you into a flying bi
 
 ## screenshos and demo
 
+<img width="1440" height="710" alt="Screenshot 2026-08-05 at 7 35 02 AM" src="https://github.com/user-attachments/assets/a73b5e9b-549a-4ffe-9a85-2801fa9a893d" />
 
+<img width="1440" height="718" alt="Screenshot 2026-08-05 at 7 36 21 AM" src="https://github.com/user-attachments/assets/828a54e9-7f70-4cb5-bff3-b2649299e3c5" />
+
+<img width="1440" height="710" alt="Screenshot 2026-08-05 at 7 36 52 AM" src="https://github.com/user-attachments/assets/ee1cbbdd-7558-464c-b75a-55e55a7728f9" />
+
+https://github.com/user-attachments/assets/bdd90aa7-1ba1-4a09-ab63-8c29859c61d7
 
 ## Controls
 - **Space**, **click**, or **tap** - flap
